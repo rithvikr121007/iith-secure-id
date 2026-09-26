@@ -60,7 +60,7 @@ iith-secure-id/
     └── style.css
 
 ```
-## Local Setup
+Local Setup
 
 Follow these steps to run the project locally.
 
