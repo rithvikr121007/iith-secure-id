@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>IITH Secure ID</title>
+
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+
+<body>
+
+    <nav class="navbar">
+
+        <div class="logo">
+            IITH <span>Secure ID</span>
+        </div>
+
+        <div class="nav-links">
+            <a href="/">Generate ID</a>
+            <a href="/verify">Verify ID</a>
+        </div>
+
+    </nav>
+
+
+    <main class="container">
+
+        <section class="hero">
+
+            <div class="badge">
+                🔐 DIGITAL CAMPUS IDENTITY
+            </div>
+
+            <h1>
+                Secure identity for a
+                <span>smarter campus.</span>
+            </h1>
+
+            <p>
+                Generate digitally secured student identities and
+                verify campus credentials using cryptographically
+                protected QR codes.
+            </p>
+
+        </section>
+
+
+        <section class="card">
+
+            <h2>Generate Student ID</h2>
+
+            <p class="card-description">
+                Enter an authorized student roll number to generate
+                a secure digital identity.
+            </p>
+
+
+            <form method="POST">
+
+                <div class="form-group">
+
+                    <label for="roll_no">
+                        Student Roll Number
+                    </label>
+
+                    <input
+                        type="text"
+                        id="roll_no"
+                        name="roll_no"
+                        placeholder="e.g. ep26btech12001"
+                        required
+                    >
+
+                </div>
+
+
+                <button
+                    type="submit"
+                    class="btn btn-primary"
+                >
+                    Generate Secure ID →
+                </button>
+
+            </form>
+
+
+            {% if error %}
+
+                <div class="error">
+                    ⚠ {{ error }}
+                </div>
+
+            {% endif %}
+
+
+            {% if qr_generated %}
+
+                <div class="qr-section">
+
+                    <h2>✓ Secure ID Generated</h2>
+
+                    <p>
+                        Your encrypted campus identity is ready.
+                    </p>
+
+                    <img
+                        src="{{ url_for('static', filename='student_id.png') }}"
+                        class="qr-image"
+                        alt="Secure Student QR Code"
+                    >
+
+                </div>
+
+            {% endif %}
+
+        </section>
+
+
+        <section class="features">
+
+            <div class="feature">
+
+                <div class="feature-icon">
+                    🔐
+                </div>
+
+                <h3>Encrypted</h3>
+
+                <p>
+                    Student identity data is protected before
+                    being encoded into the QR credential.
+                </p>
+
+            </div>
+
+
+            <div class="feature">
+
+                <div class="feature-icon">
+                    ✓
+                </div>
+
+                <h3>Verifiable</h3>
+
+                <p>
+                    Authorized verification software can decode
+                    and validate the protected identity.
+                </p>
+
+            </div>
+
+
+            <div class="feature">
+
+                <div class="feature-icon">
+                    🛡
+                </div>
+
+                <h3>Campus Ready</h3>
+
+                <p>
+                    Designed as a foundation for secure digital
+                    identity across campus services.
+                </p>
+
+            </div>
+
+        </section>
+
+    </main>
+
+
+    <footer class="footer">
+
+        IITH Secure ID • Smart Campus Identity System
+
+    </footer>
+
+</body>
+
+</html>

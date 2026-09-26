@@ -1,0 +1,11 @@
+__pycache__/
+*.pyc
+
+secret.key
+
+uploaded_qr.png
+uploaded_qr_png
+
+static/student_id.png
+
+.vscode/

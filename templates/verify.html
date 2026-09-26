@@ -1,0 +1,496 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Verify ID | IITH Secure ID</title>
+
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+
+<body>
+
+    <nav class="navbar">
+
+        <div class="logo">
+            IITH <span>Secure ID</span>
+        </div>
+
+        <div class="nav-links">
+            <a href="/">Generate ID</a>
+            <a href="/verify">Verify ID</a>
+        </div>
+
+    </nav>
+
+
+    <main class="container">
+
+        <section class="hero">
+
+            <div class="badge">
+                ✓ IDENTITY VERIFICATION
+            </div>
+
+            <h1>
+                Verify a
+                <span>campus identity.</span>
+            </h1>
+
+            <p>
+                Scan a student's secure QR credential using your
+                camera or upload a QR image.
+            </p>
+
+        </section>
+
+
+        <!-- LIVE CAMERA -->
+
+        <section class="card">
+
+            <h2>📷 Scan with Camera</h2>
+
+            <p class="card-description">
+                Point your camera at a student's secure QR code.
+                Verification happens automatically when a QR is detected.
+            </p>
+
+
+            <div class="camera-container">
+
+                <video
+                    id="camera"
+                    autoplay
+                    playsinline
+                ></video>
+
+                <div class="scan-frame"></div>
+
+            </div>
+
+
+            <button
+                type="button"
+                class="btn btn-primary"
+                id="start-camera"
+            >
+                Start Camera
+            </button>
+
+
+            <p id="camera-status" class="camera-status">
+                Camera is currently off.
+            </p>
+            <div id="camera-result"></div>
+
+        </section>
+
+
+        <!-- DIVIDER -->
+
+        <div class="verify-divider">
+
+            <span>OR</span>
+
+        </div>
+
+
+        <!-- UPLOAD -->
+
+        <section class="card">
+
+            <h2>📁 Upload QR Image</h2>
+
+            <p class="card-description">
+                Upload a QR image if you don't want to use the camera.
+            </p>
+
+
+            <form
+                method="POST"
+                enctype="multipart/form-data"
+            >
+
+                <div class="form-group">
+
+                    <label for="qr_image">
+                        Secure QR Code
+                    </label>
+
+                    <input
+                        type="file"
+                        id="qr_image"
+                        name="qr_image"
+                        accept="image/*"
+                        required
+                    >
+
+                </div>
+
+
+                <button
+                    type="submit"
+                    class="btn btn-primary"
+                >
+                    Verify Uploaded ID →
+                </button>
+
+            </form>
+
+        </section>
+
+
+        <!-- VERIFICATION RESULT -->
+
+        {% if verified %}
+
+            <section class="verification-card">
+
+                <h2 class="verification-title">
+                    ✓ Identity Verified
+                </h2>
+
+
+                <div class="student-detail">
+
+                    <small>ROLL NUMBER</small>
+
+                    <strong>
+                        {{ student["roll_no"] }}
+                    </strong>
+
+                </div>
+
+
+                <div class="student-detail">
+
+                    <small>NAME</small>
+
+                    <strong>
+                        {{ student["name"] }}
+                    </strong>
+
+                </div>
+
+
+                <div class="student-detail">
+
+                    <small>DEPARTMENT</small>
+
+                    <strong>
+                        {{ student["department"] }}
+                    </strong>
+
+                </div>
+
+            </section>
+
+        {% endif %}
+
+
+        {% if verified == False %}
+
+            <div class="error">
+
+                ✕ QR code could not be verified.
+
+                <br><br>
+
+                Please upload or scan a valid campus ID QR code.
+
+            </div>
+
+        {% endif %}
+
+
+        <section class="features">
+
+            <div class="feature">
+
+                <div class="feature-icon">
+                    📷
+                </div>
+
+                <h3>Live Scan</h3>
+
+                <p>
+                    Detect QR credentials directly through the
+                    device camera.
+                </p>
+
+            </div>
+
+
+            <div class="feature">
+
+                <div class="feature-icon">
+                    🔐
+                </div>
+
+                <h3>Decrypt</h3>
+
+                <p>
+                    The authorized server decrypts the protected
+                    identity data.
+                </p>
+
+            </div>
+
+
+            <div class="feature">
+
+                <div class="feature-icon">
+                    ✓
+                </div>
+
+                <h3>Verify</h3>
+
+                <p>
+                    Valid credentials reveal the student's
+                    registered campus identity.
+                </p>
+
+            </div>
+
+        </section>
+
+    </main>
+
+
+    <footer class="footer">
+
+        IITH Secure ID • Smart Campus Identity System
+
+    </footer>
+
+
+    <script>
+
+    const video = document.getElementById("camera");
+    const startButton = document.getElementById("start-camera");
+    const statusText = document.getElementById("camera-status");
+    const resultBox = document.getElementById("camera-result");
+
+    let stream = null;
+    let scanning = false;
+
+    const canvas = document.createElement("canvas");
+    const context = canvas.getContext("2d");
+
+
+    startButton.addEventListener("click", async () => {
+
+        try {
+
+            stream = await navigator.mediaDevices.getUserMedia({
+                video: {
+                    facingMode: "environment"
+                }
+            });
+
+            video.srcObject = stream;
+
+            statusText.textContent =
+                "Camera active — point it at a QR code.";
+
+            startButton.textContent = "Scanning...";
+            startButton.disabled = true;
+
+            scanning = true;
+
+            scanQRCode();
+
+       } catch (error) {
+            console.error("CAMERA ERROR:", error);
+
+            statusText.textContent =
+            "Camera error: " + error.name;
+        }
+
+    });
+
+
+    async function scanQRCode() {
+
+        if (!scanning) {
+            return;
+        }
+
+
+        if ("BarcodeDetector" in window) {
+
+            const detector = new BarcodeDetector({
+                formats: ["qr_code"]
+            });
+
+
+            try {
+
+                const barcodes = await detector.detect(video);
+
+
+                if (barcodes.length > 0) {
+
+                    const qrData = barcodes[0].rawValue;
+
+                    await verifyQRCode(qrData);
+
+                    return;
+
+                }
+
+            }
+
+            catch (error) {
+
+                console.error("QR detection error:", error);
+
+            }
+
+        }
+
+
+        requestAnimationFrame(scanQRCode);
+
+    }
+
+
+    async function verifyQRCode(qrData) {
+
+        scanning = false;
+
+        statusText.textContent =
+            "QR detected. Verifying identity...";
+
+
+        try {
+
+            const response = await fetch("/verify-data", {
+
+                method: "POST",
+
+                headers: {
+                    "Content-Type": "application/json"
+                },
+
+                body: JSON.stringify({
+                    data: qrData
+                })
+
+            });
+
+
+            const result = await response.json();
+
+
+            if (result.verified) {
+
+                showVerifiedStudent(result.student);
+
+                stopCamera();
+
+            }
+
+            else {
+
+                resultBox.innerHTML = `
+                    <div class="error">
+                        ✕ QR code could not be verified.
+                    </div>
+                `;
+
+                scanning = true;
+
+                requestAnimationFrame(scanQRCode);
+
+            }
+
+        }
+
+        catch (error) {
+
+            console.error(error);
+
+            resultBox.innerHTML = `
+                <div class="error">
+                    ✕ Verification request failed.
+                </div>
+            `;
+
+        }
+
+    }
+
+
+    function showVerifiedStudent(student) {
+
+        resultBox.innerHTML = `
+
+            <div class="verification-card">
+
+                <h2 class="verification-title">
+                    ✓ Identity Verified
+                </h2>
+
+                <div class="student-detail">
+
+                    <small>ROLL NUMBER</small>
+
+                    <strong>
+                        ${student.roll_no}
+                    </strong>
+
+                </div>
+
+                <div class="student-detail">
+
+                    <small>NAME</small>
+
+                    <strong>
+                        ${student.name}
+                    </strong>
+
+                </div>
+
+                <div class="student-detail">
+
+                    <small>DEPARTMENT</small>
+
+                    <strong>
+                        ${student.department}
+                    </strong>
+
+                </div>
+
+            </div>
+
+        `;
+
+        statusText.textContent =
+            "Identity successfully verified.";
+
+    }
+
+
+    function stopCamera() {
+
+        if (stream) {
+
+            stream.getTracks().forEach(track => {
+                track.stop();
+            });
+
+        }
+
+        startButton.textContent = "Verification Complete";
+
+    }
+
+</script>
+
+</body>
+
+</html>
