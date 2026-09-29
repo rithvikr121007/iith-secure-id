@@ -143,16 +143,7 @@ Knowing a student's roll number alone does not provide the encryption key requir
 
 ## API
 
-The application includes an API endpoint for QR verification that can be used by other campus systems.
-
-This can allow services such as:
-
-- Library
-- Hostel
-- Mess
-- Other campus services
-
-to integrate with the identity verification system.
+we can easily develop api to easily integrate with the identity verification system.
 
 ## Future Improvements
 
